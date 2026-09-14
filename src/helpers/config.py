@@ -1,4 +1,5 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
+import os
+from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     APP_NAME: str
@@ -32,7 +33,8 @@ class Settings(BaseSettings):
     DEFAULT_LANG: str = "en"
 
     class Config:
-        env_file = ".env"
+        env_file = "/workspaces/Mini_Rag/.env"
 
 def get_settings():
     return Settings()
+ 

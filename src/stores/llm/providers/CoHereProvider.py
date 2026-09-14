@@ -64,7 +64,7 @@ class CoHereProvider(LLMInterface):
 
         return response.text
 
-    def embed_text(self, text: str, document_type: str = None):
+    def embed_text(self, text, document_type: str = None):
 
         if not self.client:
             self.logger.error("CoHere client was not set")
@@ -78,18 +78,25 @@ class CoHereProvider(LLMInterface):
         if document_type == DocumentTypeEnum.QUERY:
             input_type = CoHereEnums.QUERY
 
-        response = self.client.embed(
-            model=self.embedding_model_id,
-            texts=[self.process_text(text)],
-            input_type=input_type,
-            embedding_types=['float'],
-        )
+        is_single = isinstance(text, str)
+        texts = [self.process_text(text)] if is_single else [self.process_text(t) for t in text]
+
+        try:
+            response = self.client.embed(
+                model=self.embedding_model_id,
+                texts=texts,
+                input_type=input_type,
+                embedding_types=['float'],
+            )
+        except Exception as e:
+            self.logger.error(f"Error while embedding text with CoHere: {e}")
+            return None
 
         if not response or not response.embeddings or not response.embeddings.float:
             self.logger.error("Error while embedding text with CoHere")
             return None
 
-        return response.embeddings.float[0]
+        return response.embeddings.float[0] if is_single else response.embeddings.float
 
     def construct_prompt(self, prompt: str, role: str):
         return {
